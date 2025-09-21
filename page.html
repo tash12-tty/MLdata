@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Strength Analyzer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f8f9fa;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .strength-bar {
+      height: 12px;
+      border-radius: 6px;
+      margin: 10px 0;
+      background: #ddd;
+    }
+    .strength-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 6px;
+      transition: width 0.3s ease-in-out;
+    }
+    .suggestions {
+      font-size: 14px;
+      color: #444;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button onclick="generatePassword()">Generate Strong Password</button>
+<p><b>Suggested Password:</b> <span id="generatedPass">-</span></p>
+
+    <h2>Password Strength Analyzer 🔐</h2>
+    <input type="password" id="password" placeholder="Type your password...">
+    <div class="strength-bar">
+      <div class="strength-fill" id="strengthFill"></div>
+    </div>
+    <p id="strengthText"><b>Strength:</b> None</p>
+    <p id="crackTime"><b>Estimated Crack Time:</b> -</p>
+    <div class="suggestions" id="suggestions"></div>
+  </div>
+
+  <script>
+    function generatePassword() {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%!&*?";
+  let password = "";
+  
+  // Keep trying until we find a strong one
+  while (true) {
+    password = "";
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    // Test with analyzer
+    let score = 0;
+    if (password.length >= 8) score += 1;
+    if (password.length >= 12) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+    if (score >= 4) break; // only accept "Very Strong"
+  }
+
+  document.getElementById("generatedPass").innerText = password;
+  analyzePassword(password); // show analyzer result
+}
+
+    const passwordInput = document.getElementById("password");
+    const strengthFill = document.getElementById("strengthFill");
+    const strengthText = document.getElementById("strengthText");
+    const crackTime = document.getElementById("crackTime");
+    const suggestions = document.getElementById("suggestions");
+
+    passwordInput.addEventListener("input", () => {
+      const password = passwordInput.value;
+      analyzePassword(password);
+    });
+
+    function analyzePassword(password) {
+      let score = 0;
+      let feedback = [];
+
+      // Scoring system
+      if (password.length >= 8) score += 1;
+      if (password.length >= 12) score += 1;
+      if (/[A-Z]/.test(password)) score += 1;
+      if (/[0-9]/.test(password)) score += 1;
+      if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+      // Suggestions
+      if (password.length < 8) feedback.push("Use at least 8 characters.");
+      if (!/[A-Z]/.test(password)) feedback.push("Add uppercase letters.");
+      if (!/[0-9]/.test(password)) feedback.push("Include some numbers.");
+      if (!/[^A-Za-z0-9]/.test(password)) feedback.push("Use special characters like @, #, !.");
+
+      // Strength levels
+      let strength = "Weak";
+      let color = "red";
+      if (score >= 2) { strength = "Moderate"; color = "orange"; }
+      if (score >= 3) { strength = "Strong"; color = "blue"; }
+      if (score >= 4) { strength = "Very Strong"; color = "green"; }
+
+      // Crack time estimate (very simplified)
+      const estimates = ["Few seconds", "Minutes", "Hours", "Days", "Years"];
+      const crackEstimate = estimates[Math.min(score, estimates.length - 1)];
+
+      // Update UI
+      strengthFill.style.width = (score * 20) + "%";
+      strengthFill.style.background = color;
+      strengthText.innerHTML = `<b>Strength:</b> ${strength}`;
+      crackTime.innerHTML = `<b>Estimated Crack Time:</b> ${crackEstimate}`;
+      suggestions.innerHTML = feedback.length ? "Suggestions:<br> - " + feedback.join("<br> - ") : "✅ Looks good!";
+    }
+  </script>
+</body>
+</html>
